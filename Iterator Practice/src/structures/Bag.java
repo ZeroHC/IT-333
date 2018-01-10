@@ -1,5 +1,7 @@
 package structures;
 
+import exceptions.IteratorMisuseException;
+
 import java.util.Iterator;
 
 public class Bag<T> implements Iterable<T>
@@ -78,21 +80,42 @@ public class Bag<T> implements Iterable<T>
     @Override
     public Iterator<T> iterator()
     {
-        return null;
+        return new BagIterator(data);
     }
 
     private class BagIterator implements Iterator<T>
     {
+        //data from the outer class
+        private T[] data;
+        private int position;
+
+        public BagIterator(T[] data)
+        {
+            this.data = data;
+        }
+
         @Override
         public boolean hasNext()
         {
-            return false;
+            //is this a valid index with an object
+            return position < data.length && data[position] != null;
         }
 
         @Override
         public T next()
         {
-            return null;
+            //make sure we have a next element (sanity check)
+            if (!hasNext())
+            {
+                throw new IteratorMisuseException("call hasNext() before next()");
+            }
+
+            //save our result
+            T currentElement = data[position];
+
+            position++;
+
+            return currentElement;
         }
     }
 }
