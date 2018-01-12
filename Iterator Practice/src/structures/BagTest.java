@@ -20,16 +20,17 @@ public class BagTest
         //this uses our iterator
         for (String word : words)
         {
+            words.add("g");
             System.out.println(word);
         }
 
         //the for-each loop above is converted to the
         // code segment below by the compiler
-        Iterator<String> iterator = words.iterator();
+        /*Iterator<String> iterator = words.iterator();
         while (iterator.hasNext())
         {
             String word = iterator.next();
             System.out.println(word);
-        }
+        }*/
     }
 }

@@ -2,12 +2,14 @@ package structures;
 
 import exceptions.IteratorMisuseException;
 
+import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 
 public class Bag<T> implements Iterable<T>
 {
     private T[] data;
     private int size;
+    private int modCount = 0;
 
     public Bag(int size)
     {
@@ -22,6 +24,7 @@ public class Bag<T> implements Iterable<T>
         }
 
         data[size++] = element;
+        modCount++;
         return true;
 
     }
@@ -40,6 +43,7 @@ public class Bag<T> implements Iterable<T>
             }
             //decrement our size and clear the removed element
             size--;
+            modCount++;
             data[size] = null;
         }
 
@@ -80,7 +84,7 @@ public class Bag<T> implements Iterable<T>
     @Override
     public Iterator<T> iterator()
     {
-        return new BagIterator(data);
+        return new BagIterator(data, modCount);
     }
 
     private class BagIterator implements Iterator<T>
@@ -88,15 +92,29 @@ public class Bag<T> implements Iterable<T>
         //data from the outer class
         private T[] data;
         private int position;
+        private int savedModCount;
 
-        public BagIterator(T[] data)
+        public BagIterator(T[] data, int savedModCount)
         {
             this.data = data;
+            this.savedModCount = savedModCount;
+        }
+
+        private void checkConcurrentChanges()
+        {
+            //see if the saved mod count is different from
+            //the current mod count in the bag
+            if (savedModCount != Bag.this.modCount)
+            {
+                throw new ConcurrentModificationException("You cannot alter a bag while using an iterator");
+            }
         }
 
         @Override
         public boolean hasNext()
         {
+            checkConcurrentChanges();
+
             //is this a valid index with an object
             return position < data.length && data[position] != null;
         }
