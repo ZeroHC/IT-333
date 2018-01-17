@@ -159,7 +159,6 @@ public class StackTests extends TestFacade
     @Test
     public void testClear()
     {
-        fail("Unexpected size() after removing elements");
         final int NUM_ELEMENTS = 3;
 
         //add a few items
