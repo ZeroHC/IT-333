@@ -23,8 +23,10 @@ import java.util.*;
  */
 public class Stack<T> implements IStack<T>
 {
-    private LinkedList<T> data = new LinkedList<>();
-    private int modCount;
+    private static final int INITIAL_SIZE = 10;
+    private T[] data = (T[])new Object[INITIAL_SIZE];
+    private int lastIndex = 0;
+    private int modCount = 0;
 
     /**
      * Adds a new element to the top of the stack.
@@ -36,7 +38,8 @@ public class Stack<T> implements IStack<T>
     @Override
     public void push(T element)
     {
-        data.add(element);
+        data[lastIndex] = element;
+        lastIndex++;
         modCount++;
     }
 
@@ -53,8 +56,30 @@ public class Stack<T> implements IStack<T>
     @Override
     public void pushAll(T[] elements)
     {
-        data.addAll(Arrays.asList(elements));
+        if (data.length < elements.length)
+        {
+           increaseArraySize(elements.length);
+        }
+
+        int initialIndex = lastIndex;
+        for (int i = 0; i < elements.length; i++)
+        {
+            data[initialIndex + i] = elements[i];
+            lastIndex++;
+        }
+
         modCount++;
+    }
+
+    //this method increases the size of the array
+    private void increaseArraySize(int increment)
+    {
+        T[] temp = (T[])new Object[INITIAL_SIZE + increment];
+
+        for (int i = 0; i < INITIAL_SIZE; i++){
+            temp[i] = data[i];
+        }
+        data = temp;
     }
 
     /**
@@ -67,9 +92,15 @@ public class Stack<T> implements IStack<T>
     {
         exceptionChecker();
 
+        T lastElement = data[lastIndex - 1];
+
+        data[lastIndex - 1] = null;
+
+        lastIndex--;
+
         modCount++;
 
-        return data.removeLast();
+        return lastElement;
     }
 
     /**
@@ -95,8 +126,12 @@ public class Stack<T> implements IStack<T>
 
         for (int i = 0; i < size; i++)
         {
-            tempList.add(data.removeFirst());
+            tempList.add(data[i]);
         }
+
+        clear();
+
+        lastIndex = 0;
 
         modCount++;
 
@@ -120,7 +155,7 @@ public class Stack<T> implements IStack<T>
     @Override
     public int size()
     {
-        return data.size();
+        return lastIndex;
     }
 
     /**
@@ -132,7 +167,7 @@ public class Stack<T> implements IStack<T>
     @Override
     public boolean isEmpty()
     {
-        return data.isEmpty();
+        return lastIndex == 0;
     }
 
     /**
@@ -150,11 +185,11 @@ public class Stack<T> implements IStack<T>
     //this creates an inner iterator class which allows users to treat the stack as iterator
     private class StackIterator implements Iterator<T>
     {
-        private LinkedList<T> data;
+        private T[] data;
         private int position;
         private int savedModCount;
 
-        private StackIterator(LinkedList<T> data, int savedModCount)
+        private StackIterator(T[] data, int savedModCount)
         {
             this.data = data;
             this.savedModCount = savedModCount;
@@ -180,7 +215,7 @@ public class Stack<T> implements IStack<T>
         {
             checkConcurrentChanges();
 
-            return position < data.size() && data.get(position) != null;
+            return position < data.length && data[position] != null;
         }
 
         /**
@@ -195,7 +230,7 @@ public class Stack<T> implements IStack<T>
                 throw new RuntimeException("Call hasNext() before next()");
             }
 
-            T currentElement = data.get(position);
+            T currentElement = data[position];
 
             position++;
 
@@ -209,6 +244,7 @@ public class Stack<T> implements IStack<T>
     @Override
     public void clear()
     {
-        data.clear();
+        data = (T[])new Object[INITIAL_SIZE ];
+        lastIndex = 0;
     }
 }
