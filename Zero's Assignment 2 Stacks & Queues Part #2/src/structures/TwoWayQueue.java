@@ -1,74 +1,354 @@
 package structures;
 
+import exceptions.EmptyQueueException;
+
+import java.util.ArrayList;
+import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.List;
 
-public class TwoWayQueue<T> implements ITwoWayQueue
+/*
+ * Hanchen (Zero) Liu
+ * 01/29/2018
+ * TwoWayQueue.java
+ * This is a custom two way queue class,
+ * that is built to support different types of elements
+ */
+
+/**
+ * This is a custom two way queue class,
+ * that is built to support different types of elements
+ *
+ * @author Hanchen (Zero) Liu
+ * @version 1.0
+ *
+ * @param <T> generic type
+ */
+public class TwoWayQueue<T> implements ITwoWayQueue<T>
 {
-
-    @Override
-    public Object dequeueFirst()
+    //create a private doubly linked node class
+    private class Node
     {
-        return null;
+        private T data;
+        private Node next;
+        private Node prev;
+
+        private Node(T data)
+        {
+            this.data = data;
+        }
     }
 
+    private Node head = null;
+    private Node tail = null;
+    private int queueSize = 0;
+    private int modCount = 0;
+
+    /**
+     * Removes and returns the first element in the queue.
+     *
+     * @throws exceptions.EmptyQueueException if the queue
+     * is empty and dequeueFirst() is called
+     * @return the first element
+     */
     @Override
-    public Object dequeueLast()
+    public T dequeueFirst()
     {
-        return null;
+        //if the queue is empty, throw a new EmptyQueueException
+        if (isEmpty()) throw new EmptyQueueException("Can not dequeue from an empty queue");
+
+
+        //else set the nodeToRemove to head
+        //then set the new head to be the next node of the old head
+        //then return the data from the nodeToRemove
+        Node nodeToRemove = head;
+
+        if (head.next == null)
+        {
+            head = null;
+        }
+        else
+        {
+            head = head.next;
+            head.prev = null;
+        }
+        queueSize--;
+        modCount++;
+        return nodeToRemove.data;
     }
 
+    /**
+     * Removes and returns the last element in the queue.
+     *
+     * @throws exceptions.EmptyQueueException if the queue
+     * is empty and dequeueLast() is called
+     * @return the last element
+     */
     @Override
-    public List dequeueAll()
+    public T dequeueLast()
     {
-        return null;
+        //if the queue is empty, throw a new EmptyQueueException
+        if (isEmpty()) throw new EmptyQueueException("Can not dequeue from an empty queue");
+
+        //else set the nodeToRemove to tail
+        //then set the new tail to be the previous node of the old tail
+        //then return the data from the nodeToRemove
+        Node nodeToRemove = tail;
+
+        if (tail.prev == null)
+        {
+            tail = null;
+        }
+        else
+        {
+            tail = tail.prev;
+            tail.next = null;
+        }
+        queueSize--;
+        modCount++;
+        return nodeToRemove.data;
     }
 
+    /**
+     * Removes and returns all elements in the queue. The first
+     * element in the queue should be located at the last index
+     * of the resulting list (index size() - 1) and the last
+     * element in the queue at index zero.
+     *
+     * @return a list of all elements in the queue
+     */
     @Override
-    public void enqueueFirst(Object element)
+    public List<T> dequeueAll()
     {
+        //if the queue is empty, throw a new EmptyQueueException
+        if (isEmpty()) throw new EmptyQueueException("Can not dequeue from an empty queue");
 
+        ArrayList<T> listToReturn = new ArrayList<>();
+
+        for (int i = 0; i < queueSize; i++)
+        {
+            listToReturn.add(dequeueLast());
+        }
+
+        return listToReturn;
     }
 
+    /**
+     * Adds a new element to the front of the queue. The
+     * queue should continually resize to make room for new
+     * elements.
+     *
+     * @param element the new element
+     */
     @Override
-    public void enqueueLast(Object element)
+    public void enqueueFirst(T element)
     {
+        //creates a tempNode to store the data that is going to be added
+        Node tempNode = new Node(element);
 
+        //if the queue is empty, call addToEmptyQueue method
+        if (isEmpty())
+        {
+            addToEmptyQueue(element);
+        }
+
+        //if the queue is not empty, set the node before head to tempNode
+        //then point the tempNode's next node to the head,
+        //point the tempNode's previous node to null
+        //lastly reset the head to tempNode
+        else
+        {
+            head.prev = tempNode;
+            tempNode.next = head;
+            tempNode.prev = null;
+            head = tempNode;
+        }
+
+        queueSize++;
+        modCount++;
     }
 
+    /**
+     * Adds a new element to the end of the queue. The
+     * queue should continually resize to make room for new
+     * elements.
+     *
+     * @param element the new element
+     */
     @Override
-    public void enqueueAllFirst(Object[] elements)
+    public void enqueueLast(T element)
     {
+        //creates a tempNode to store the data that is going to be added
+        Node tempNode = new Node(element);
 
+        //if the queue is empty, call addToEmptyQueue method
+        if (isEmpty())
+        {
+            addToEmptyQueue(element);
+        }
+
+        //if the queue is not empty, set the node after tail to tempNode
+        //then point the tempNode's previous node to the tail,
+        //point the tempNode's next node to null
+        //lastly reset the tail to tempNode
+        else
+        {
+            tail.next = tempNode;
+            tempNode.prev = tail;
+            tempNode.next = null;
+            tail = tempNode;
+        }
+
+        queueSize++;
+        modCount++;
     }
 
-    @Override
-    public void enqueueAllLast(Object[] elements)
+    //this method adds a new node to an empty two way queue
+    private void addToEmptyQueue(T element)
     {
-
+        //set both side of the tempNode to null
+        //then set both the head and tail to the tempNode
+        head = new Node(element);
+        tail = head;
     }
 
+    /**
+     * Adds a group of elements to the front of the queue.
+     *
+     * @param elements an array of elements
+     */
+    @Override
+    public void enqueueAllFirst(T[] elements)
+    {
+        for(T element : elements)
+        {
+            enqueueFirst(element);
+        }
+    }
+
+    /**
+     * Adds a group of elements to the end of the queue.
+     *
+     * @param elements an array of elements
+     */
+    @Override
+    public void enqueueAllLast(T[] elements)
+    {
+        for(T element : elements)
+        {
+            enqueueLast(element);
+        }
+    }
+
+    /**
+     * Returns the number of elements in the queue.
+     *
+     * @return the number of elements
+     */
     @Override
     public int size()
     {
-        return 0;
+        return queueSize;
     }
 
+    /**
+     * Reports whether the queue is empty or not.
+     *
+     * @return true if no elements are in the queue,
+     * otherwise returns false
+     */
     @Override
     public boolean isEmpty()
     {
-        return false;
+        return head == null;
     }
 
+    /**
+     * Removes all elements from the queue.
+     */
     @Override
     public void clear()
     {
-
+        head = null;
+        tail = null;
+        queueSize = 0;
+        modCount++;
     }
 
+    /**
+     * Returns an iterator over the elements of the
+     * queue. It should not be possible to use the
+     * iterator while making any changes to the two way queue
+     * itself.
+     *
+
+     * The first element returned from the iterator should be
+     * the front element of the queue (the first element
+     * returned by dequeueLast()) and the last element
+     * the ending element of the queue (the last element
+     * returned by dequeueLast()).
+     *
+     * @return an object using the Iterator<T> interface
+     */
     @Override
-    public Iterator iterator()
+    public Iterator<T> iterator()
     {
-        return null;
+        return new LinkedListIterator(tail, modCount);
+    }
+
+    //this creates an inner iterator class which allows users to treat the two way queue as iterator
+    private class LinkedListIterator implements Iterator<T>
+    {
+        private Node linkedList;
+        private int savedModCount;
+
+        private LinkedListIterator(Node linkedList, int savedModCount)
+        {
+            this.linkedList = linkedList;
+            this.savedModCount = savedModCount;
+        }
+
+        //this method prevents user from trying to change the two way queue using an iterator
+        private void checkConcurrentChanges()
+        {
+            //see if the saved mod count is different from
+            //the current mod count in the two way queue
+            if (savedModCount != TwoWayQueue.this.modCount)
+            {
+                throw new ConcurrentModificationException("You cannot alter the two way queue while using an iterator");
+            }
+        }
+
+        /**
+         * this method checks if it is the end of the two way queue
+         * @return if it is the end of stack
+         */
+        @Override
+        public boolean hasNext()
+        {
+            checkConcurrentChanges();
+
+            return linkedList != null;
+        }
+
+        /**
+         * this method retrieves the current element in a stack
+         * @return the current element in a two way queue
+         */
+        @Override
+        public T next()
+        {
+            if (!hasNext())
+            {
+                throw new RuntimeException("Call hasNext() before next()");
+            }
+
+            Node tempNode = linkedList;
+            T currentElement = tempNode.data;
+
+            linkedList = linkedList.prev;
+
+            return currentElement;
+        }
     }
 }
