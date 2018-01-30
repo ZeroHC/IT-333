@@ -33,9 +33,11 @@ public class TwoWayQueue<T> implements ITwoWayQueue<T>
         private Node next;
         private Node prev;
 
-        private Node(T data)
+        private Node(T data, Node prev, Node next)
         {
             this.data = data;
+            this.prev = prev;
+            this.next = next;
         }
     }
 
@@ -43,6 +45,7 @@ public class TwoWayQueue<T> implements ITwoWayQueue<T>
     private Node tail = null;
     private int queueSize = 0;
     private int modCount = 0;
+
 
     /**
      * Removes and returns the first element in the queue.
@@ -125,10 +128,14 @@ public class TwoWayQueue<T> implements ITwoWayQueue<T>
 
         ArrayList<T> listToReturn = new ArrayList<>();
 
-        for (int i = 0; i < queueSize; i++)
+        int tempSize = queueSize;
+
+        for (int i = 0; i < tempSize; i++)
         {
             listToReturn.add(dequeueLast());
         }
+
+        clear();
 
         return listToReturn;
     }
@@ -144,24 +151,18 @@ public class TwoWayQueue<T> implements ITwoWayQueue<T>
     public void enqueueFirst(T element)
     {
         //creates a tempNode to store the data that is going to be added
-        Node tempNode = new Node(element);
+        Node tempNode = new Node(element, null, head);
 
-        //if the queue is empty, call addToEmptyQueue method
-        if (isEmpty())
-        {
-            addToEmptyQueue(element);
-        }
-
-        //if the queue is not empty, set the node before head to tempNode
-        //then point the tempNode's next node to the head,
-        //point the tempNode's previous node to null
-        //lastly reset the head to tempNode
-        else
+        if(head != null )
         {
             head.prev = tempNode;
-            tempNode.next = head;
-            tempNode.prev = null;
-            head = tempNode;
+        }
+
+        head = tempNode;
+
+        if(tail == null)
+        {
+            tail = tempNode;
         }
 
         queueSize++;
@@ -179,37 +180,22 @@ public class TwoWayQueue<T> implements ITwoWayQueue<T>
     public void enqueueLast(T element)
     {
         //creates a tempNode to store the data that is going to be added
-        Node tempNode = new Node(element);
+        Node tempNode = new Node(element, tail, null);
 
-        //if the queue is empty, call addToEmptyQueue method
-        if (isEmpty())
-        {
-            addToEmptyQueue(element);
-        }
-
-        //if the queue is not empty, set the node after tail to tempNode
-        //then point the tempNode's previous node to the tail,
-        //point the tempNode's next node to null
-        //lastly reset the tail to tempNode
-        else
+        if(tail != null)
         {
             tail.next = tempNode;
-            tempNode.prev = tail;
-            tempNode.next = null;
-            tail = tempNode;
+        }
+
+        tail = tempNode;
+
+        if(head == null)
+        {
+            head = tempNode;
         }
 
         queueSize++;
         modCount++;
-    }
-
-    //this method adds a new node to an empty two way queue
-    private void addToEmptyQueue(T element)
-    {
-        //set both side of the tempNode to null
-        //then set both the head and tail to the tempNode
-        head = new Node(element);
-        tail = head;
     }
 
     /**
