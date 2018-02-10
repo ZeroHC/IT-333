@@ -26,27 +26,6 @@ import java.util.List;
  */
 public class TwoWayQueue<T> implements ITwoWayQueue<T>
 {
-    //create a private doubly linked node class
-    private class Node
-    {
-        private T data;
-        private Node next;
-        private Node prev;
-
-        private Node(T data, Node prev, Node next)
-        {
-            this.data = data;
-            this.prev = prev;
-            this.next = next;
-        }
-    }
-
-    private Node head = null;
-    private Node tail = null;
-    private int queueSize = 0;
-    private int modCount = 0;
-
-
     /**
      * Removes and returns the first element in the queue.
      *
@@ -281,6 +260,26 @@ public class TwoWayQueue<T> implements ITwoWayQueue<T>
     {
         return new LinkedListIterator(tail, modCount);
     }
+
+    //create a private doubly linked node class
+    private class Node
+    {
+        private T data;
+        private Node next;
+        private Node prev;
+
+        private Node(T data, Node prev, Node next)
+        {
+            this.data = data;
+            this.prev = prev;
+            this.next = next;
+        }
+    }
+
+    private Node head = null;
+    private Node tail = null;
+    private int queueSize = 0;
+    private int modCount = 0;
 
     //this creates an inner iterator class which allows users to treat the two way queue as iterator
     private class LinkedListIterator implements Iterator<T>
