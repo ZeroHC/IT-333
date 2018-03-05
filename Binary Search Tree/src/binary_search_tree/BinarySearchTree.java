@@ -2,6 +2,7 @@ package binary_search_tree;
 
 import java.util.Iterator;
 import java.util.Queue;
+import java.util.Stack;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class BinarySearchTree<T extends Comparable<T>> implements Iterable<T>
@@ -162,6 +163,22 @@ public class BinarySearchTree<T extends Comparable<T>> implements Iterable<T>
         return findMax(search.right);
     }
 
+    public int size()
+    {
+        return size;
+    }
+
+    public boolean isEmpty()
+    {
+        return size == 0;
+    }
+
+    public void clear()
+    {
+        root = null;
+        size = 0;
+    }
+
     public void printTraversal(Traversal traversal)
     {
         switch (traversal)
@@ -288,25 +305,84 @@ public class BinarySearchTree<T extends Comparable<T>> implements Iterable<T>
         calculateNodeDepth(root, 0);
     }
 
-    private int calculateNodeDepth(Node current, int depth)
+    private void calculateNodeDepth(Node current, int depth)
+    {
+        if (current == null)
+        {
+            return;
+        }
+        else
+        {
+            current.setDepth(depth);
+            //look at child nodes, which are at a different depth
+            calculateNodeDepth(current.left, depth + 1);
+            calculateNodeDepth(current.right, depth + 1);
+        }
+    }
+
+    public int getTotalTreeDepth()
+    {
+        //make sure each node has a depth value
+        calculateAllNodeDepths();
+
+        return getTotalTreeDepth(root);
+    }
+
+    private int getTotalTreeDepth(Node current)
     {
         if (current == null)
         {
             return 0;
         }
-        else
-        {
-            current.setDepth(depth);
-            depth++;
-            calculateNodeDepth(current, depth);
-            return depth;
-        }
+        return current.depth + getTotalTreeDepth(current.left) + getTotalTreeDepth(current.right);
     }
 
     @Override
     public Iterator<T> iterator()
     {
-        return null;
+        return new BSTIterator(root);
+    }
+
+    private class BSTIterator implements Iterator<T>
+    {
+        private Stack<Node> nodeStack;
+
+        public BSTIterator(Node current)
+        {
+            nodeStack = new Stack<>();
+
+            diveLeft(current);
+        }
+
+        @Override
+        public boolean hasNext()
+        {
+            return !nodeStack.isEmpty();
+        }
+
+        @Override
+        public T next()
+        {
+            Node next = nodeStack.pop();
+
+            //if there is a right child, dive to the left while adding nodes to the stack
+            if (next.right != null)
+            {
+                Node current = next.right;
+                diveLeft(current);
+            }
+            return next.data;
+        }
+
+        private void diveLeft(Node current)
+        {
+            //setup our first element to be returned
+            while (current != null)
+            {
+                nodeStack.push(current);
+                current = root.left;
+            }
+        }
     }
 
     private class Node
