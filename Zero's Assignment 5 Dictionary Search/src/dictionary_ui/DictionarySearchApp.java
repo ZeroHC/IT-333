@@ -25,8 +25,9 @@ public class DictionarySearchApp
     private static DictionaryBuilder builder;
 
     /**
+     * this is the main method that simulates my dictionary app
      *
-     * @param args
+     * @param args command line args
      */
     public static void main(String[] args)
     {
@@ -46,8 +47,8 @@ public class DictionarySearchApp
         while (userInput != 5)
         {
             System.out.println("What would you like to do next? (1-5)");
-            System.out.println("1. Load dictionary from unordered pairs (Approximate wait time 2-3 min!)");
-            System.out.println("2. Load dictionary from serialized tree (Approximate wait time 2-3 min!)");
+            System.out.println("1. Load dictionary from unordered pairs");
+            System.out.println("2. Load dictionary from serialized tree");
             System.out.println("3. Define");
             System.out.println("4. Save dictionary");
             System.out.println("5. Exit");

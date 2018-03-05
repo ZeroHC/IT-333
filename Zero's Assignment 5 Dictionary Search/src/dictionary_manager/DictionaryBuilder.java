@@ -11,6 +11,7 @@ package dictionary_manager;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.lang.reflect.Array;
 import java.util.*;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -25,6 +26,8 @@ public class DictionaryBuilder
     //private fields
     private Node root;
     private TreeMap<String, String> sortedDictionaryMap;
+    private Object[] wordArray;
+    private Object[] definitionArray;
 
     /**
      * This method initializes a dictionary search tree
@@ -68,6 +71,10 @@ public class DictionaryBuilder
 
         //use TreeMap to auto sort the tempMap
         sortedDictionaryMap = new TreeMap<>(tempMap);
+
+        //store words and definitions into arrays
+        wordArray = sortedDictionaryMap.keySet().toArray();
+        definitionArray = sortedDictionaryMap.values().toArray();
     }
 
     //this method generates the dictionary tree
@@ -83,8 +90,8 @@ public class DictionaryBuilder
             //make sure the tree is balanced by taking the middle pair as the parent node
             int middleIndex = (maxIndex - minIndex) / 2 + minIndex;
 
-            Node current = new Node((String)sortedDictionaryMap.keySet().toArray()[middleIndex],
-                                    (String)sortedDictionaryMap.values().toArray()[middleIndex]);
+            Node current = new Node((String)wordArray[middleIndex],
+                                    (String)definitionArray[middleIndex]);
 
             current.left = generateDictionaryTree(minIndex, middleIndex - 1);
             current.right = generateDictionaryTree(middleIndex + 1, maxIndex);
