@@ -1,5 +1,8 @@
 package hash_tables;
 
+import java.util.ConcurrentModificationException;
+import java.util.Iterator;
+
 public class HashTable<T>
 {
     private static final int INITIAL_TABLE_SIZE = 10;
@@ -9,6 +12,7 @@ public class HashTable<T>
     private HashTableElement[] table;
     private int size;
     private int usedSpace;
+    private int modCount = 0;
 
     public HashTable()
     {
@@ -53,6 +57,7 @@ public class HashTable<T>
                     table[index].data = element;
                     table[index].isActive = true;
                     size++;
+                    modCount++;
                     return true;
                 }
             }
@@ -64,6 +69,7 @@ public class HashTable<T>
 
         size++;
         usedSpace++;
+        modCount++;
         table[index] = new HashTableElement(element, true);
         return true;
     }
@@ -137,6 +143,7 @@ public class HashTable<T>
             {
                 table[index].isActive = false;
                 size--;
+                modCount++;
                 return true;
             }
         }
@@ -171,6 +178,23 @@ public class HashTable<T>
         return -1;
     }
 
+    public int size()
+    {
+        return size;
+    }
+
+    public boolean isEmpty()
+    {
+        return size == 0;
+    }
+
+    public void clear()
+    {
+        size = 0;
+        usedSpace = 0;
+        table = new HashTableElement[INITIAL_TABLE_SIZE];
+    }
+
     private class HashTableElement<T>
     {
         private T data;
@@ -192,6 +216,52 @@ public class HashTable<T>
             {
                 return data.toString();
             }
+        }
+    }
+
+    public Iterator<T> iterator()
+    {
+        return new HashTableIterator(table);
+    }
+
+    private class HashTableIterator implements Iterator<T>
+    {
+        //data from the outer class
+        private HashTableElement[] table;
+        private int nextIndex = -1;
+
+        public HashTableIterator(HashTableElement[] table)
+        {
+            this.table = table;
+            findNext();
+        }
+
+        @Override
+        public boolean hasNext()
+        {
+            return nextIndex != -1;
+        }
+
+        @Override
+        public T next()
+        {
+            Object nextElement = table[nextIndex].data;
+            findNext();
+            return (T)nextElement;
+        }
+
+        private void findNext()
+        {
+            for (int i = nextIndex + 1; i < table.length; i++)
+            {
+                if (table[i] != null && table[i].isActive)
+                {
+                    nextIndex = i;
+                    return;
+                }
+            }
+
+            nextIndex = -1;
         }
     }
 }
