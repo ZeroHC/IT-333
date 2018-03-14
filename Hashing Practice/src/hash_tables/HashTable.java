@@ -1,9 +1,8 @@
 package hash_tables;
 
-import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 
-public class HashTable<T>
+public class HashTable<T> implements Iterable<T>
 {
     private static final int INITIAL_TABLE_SIZE = 10;
     private static final double MAX_LOAD_FACTOR = 0.6;
@@ -11,8 +10,7 @@ public class HashTable<T>
 
     private HashTableElement[] table;
     private int size;
-    private int usedSpace;
-    private int modCount = 0;
+    private int usedSpaces;
 
     public HashTable()
     {
@@ -24,18 +22,16 @@ public class HashTable<T>
         //have we exceeded our load factor
         if (exceededLoadFactor())
         {
-            //System.out.println("Resize");
             rehash();
         }
 
         int code = element.hashCode();
         int index = code % table.length;
 
-        //is there a collision
-        /*if (table[index] != null)
+        if (table[index] != null)
         {
-            System.out.println("Collision");
-        }*/
+            System.out.println("Collision!");
+        }
 
         //check for collisions
         while (table[index] != null)
@@ -43,21 +39,17 @@ public class HashTable<T>
             //stop if the element is already in the table
             if (table[index].data.equals(element))
             {
-
                 //there is a duplicate
                 if (table[index].isActive)
                 {
                     return false;
                 }
-
-                //the element is here, but was previously deleted
-                else
+                else //the element is here, but was previously deleted
                 {
                     //add the new element at this position
                     table[index].data = element;
                     table[index].isActive = true;
                     size++;
-                    modCount++;
                     return true;
                 }
             }
@@ -67,10 +59,9 @@ public class HashTable<T>
             index = index % table.length;
         }
 
-        size++;
-        usedSpace++;
-        modCount++;
         table[index] = new HashTableElement(element, true);
+        size++;
+        usedSpaces++;
         return true;
     }
 
@@ -84,25 +75,25 @@ public class HashTable<T>
         //save the data
         HashTableElement[] oldTable = table;
 
-        //set our size and usedSpace to zero
-        //so that the table can start a new
+        //set our size and usedSpaces to zero so that add() below
+        //can start anew
         size = 0;
-        usedSpace = 0;
+        usedSpaces = 0;
 
         //reassign our table array
         table = new HashTableElement[(int)(oldTable.length * RESIZE_RATE)];
 
         //loop over each element that is active and add() it
-        for (HashTableElement element : oldTable)
+        for (int i = 0; i < oldTable.length; i++)
         {
-            if (element != null && element.isActive)
+            if (oldTable[i] != null && oldTable[i].isActive)
             {
-                add((T)element);
+                add((T)oldTable[i].data);
             }
         }
     }
 
-    public void printUsedSpace()
+    public void printUsedSpaces()
     {
         for (int i = 0; i < table.length; i++)
         {
@@ -119,6 +110,7 @@ public class HashTable<T>
                 System.out.print("X");
             }
         }
+        System.out.println();
     }
 
     public boolean contains(T element)
@@ -129,8 +121,10 @@ public class HashTable<T>
         {
             return table[index].isActive;
         }
-
-        return false;
+        else
+        {
+            return false;
+        }
     }
 
     public boolean remove(T element)
@@ -143,7 +137,6 @@ public class HashTable<T>
             {
                 table[index].isActive = false;
                 size--;
-                modCount++;
                 return true;
             }
         }
@@ -151,8 +144,8 @@ public class HashTable<T>
         return false;
     }
 
-    //returns the index at which the element was found
-    //regardless of whether it is active or not
+    //returns the index at which the element was found (regardless of
+    //whether it is active or not!)
     private int find(T element)
     {
         int code = element.hashCode();
@@ -160,16 +153,10 @@ public class HashTable<T>
 
         while (table[index] != null)
         {
+            //if the element matches and is active
             if (table[index].data.equals(element))
             {
-                if (table[index].isActive)
-                {
-                    return index;
-                }
-                else
-                {
-                    return index;
-                }
+                return index;
             }
 
             index = (index + 1) % table.length;
@@ -191,46 +178,22 @@ public class HashTable<T>
     public void clear()
     {
         size = 0;
-        usedSpace = 0;
+        usedSpaces = 0;
         table = new HashTableElement[INITIAL_TABLE_SIZE];
     }
 
-    private class HashTableElement<T>
-    {
-        private T data;
-        private boolean isActive;
-
-        private HashTableElement(T data, boolean isActive)
-        {
-            this.data = data;
-            this.isActive = isActive;
-        }
-
-        public String toString()
-        {
-            if (!isActive)
-            {
-                return "Inactive";
-            }
-            else
-            {
-                return data.toString();
-            }
-        }
-    }
-
+    @Override
     public Iterator<T> iterator()
     {
-        return new HashTableIterator(table);
+        return new TableIterator(table);
     }
 
-    private class HashTableIterator implements Iterator<T>
+    private class TableIterator implements Iterator<T>
     {
-        //data from the outer class
         private HashTableElement[] table;
         private int nextIndex = -1;
 
-        public HashTableIterator(HashTableElement[] table)
+        public TableIterator(HashTableElement[] table)
         {
             this.table = table;
             findNext();
@@ -262,6 +225,30 @@ public class HashTable<T>
             }
 
             nextIndex = -1;
+        }
+    }
+
+    private class HashTableElement<T>
+    {
+        private T data;
+        private boolean isActive;
+
+        public HashTableElement(T data, boolean isActive)
+        {
+            this.data = data;
+            this.isActive = isActive;
+        }
+
+        public String toString()
+        {
+            if (!isActive)
+            {
+                return "Inactive";
+            }
+            else
+            {
+                return data.toString();
+            }
         }
     }
 }
